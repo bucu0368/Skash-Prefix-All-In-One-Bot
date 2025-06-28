@@ -26,20 +26,13 @@ process.on("unhandledRejection", (err) => client.logger.error(`Unhandled excepti
   // check for updates
   await checkForUpdates();
 
-  // start the dashboard
-  if (client.config.DASHBOARD.enabled) {
-    client.logger.log("Launching dashboard");
-    try {
-      const { launch } = require("@root/dashboard/app");
+  // initialize the database
+  await initializeMongoose();
 
-      // let the dashboard initialize the database
-      await launch(client);
-    } catch (ex) {
-      client.logger.error("Failed to launch dashboard", ex);
-    }
-  } else {
-    // initialize the database
-    await initializeMongoose();
+  // start the API server
+  if (process.env.NODE_ENV !== 'test') {
+    const { startServer } = require('@src/api/server');
+    startServer();
   }
 
   // start the client
